@@ -1,0 +1,47 @@
+# Created by venv; see https://docs.python.org/3/library/venv.html
+
+# Python bytecode
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environments
+venv/
+.env/
+.env
+
+# Environment variables
+*.env
+.env.*
+
+# VS Code config
+.vscode/
+
+# OS-specific
+.DS_Store
+Thumbs.db
+
+# Pytest cache
+.pytest_cache/
+.cache/
+
+# Migrations (optional)
+migrations/
+alembic/
+
+# SQLite DB files (if used locally for testing)
+*.sqlite3
+*.db
+
+# Logs
+*.log
+
+# Docker files (optional)
+*.pid
+
+# mypy, coverage, etc.
+.mypy_cache/
+.coverage
+htmlcov/
+dist/
+build/
