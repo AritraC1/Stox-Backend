@@ -25,11 +25,51 @@
 ## End Points
 
 ```http
-GET    /api/stocks/{symbol}          # Get real-time stock data
-GET    /api/stocks/{symbol}/history  # Get historical stock data
-POST   /api/auth/register            # Register a new user
-POST   /api/auth/login               # Login and receive JWT token
-GET    /api/user/watchlist           # Get user watchlist
-POST   /api/user/watchlist           # Add a stock to watchlist
-DELETE /api/user/watchlist/{symbol}  # Remove a stock from watchlist
+# Stock Data (via yFinance)
+GET    /api/stocks/{symbol}              # Get real-time stock price data
+POST   /api/stocks/bulk                  # Fetch real-time data for multiple symbols
+GET    /api/stocks/{symbol}/history      # Get historical stock data (assumed from initial docs)
+
+# Technical Analysis
+GET    /api/stocks/{symbol}/indicators   # Get technical indicators (SMA, EMA, RSI, etc.)
+GET    /api/stocks/{symbol}/chart-data   # Get chart data for plotting (from indicators)
+
+# Company Info
+GET    /api/stocks/{symbol}/info         # Get company metadata and profile
+GET    /api/tickers?page=1&limit=10      # Paginated company/ticker listing
+```
+
+## Documentation
+Stox provides auto-generated API documentation to help developers explore and interact with the available endpoints:
+
+**Swagger UI**: Interactive API docs
+Visit: [Swagger Docs]()
+
+**ReDoc**: Clean and customizable API reference
+Visit: [ReDoc]()
+
+**OpenAPI Spec (JSON)**: Full OpenAPI schema definition reference
+Visit: [OpenAPI Spec]()
+
+## Setup Instructions
+```bash
+# Clone the repo
+git clone https://github.com/AritraC1/Stox-Backend.git
+cd stox
+
+# Create and activate virtual environment
+python -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+
+# Install dependencies
+pip install -r requirements.txt
+
+# Setup env file
+DATABASE_URL=postgresql://username:password@localhost:5432/stock_db
+REDIS_HOST=localhost # for local development, change it accordingly
+REDIS_PORT=6379 #Redis default port
+
+# Run the app
+uvicorn app.main:app --reload --host 0.0.0.0 --port 3001
+
 ```
