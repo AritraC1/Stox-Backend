@@ -5,7 +5,7 @@
 
 - Real-time and historical stock data via yFinance
 - Company info and market insights
-- Watchlist and preferences management
+- Watchlist and preferences management (coming soon)
 - Redis-based caching to reduce API overhead
 - Technical indicators (e.g. SMA, EMA, RSI)
 - Bulk data fetching support
