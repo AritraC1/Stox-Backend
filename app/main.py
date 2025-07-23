@@ -8,7 +8,8 @@ Base.metadata.create_all(bind=engine)
 
 app = FastAPI(
     title="Stock Market Dashboard API",
-    version="1.0.0"
+    version="1.0.0",
+    docs_url="/docs",            # default Swagger UI
 )
 
 # CORS Middleware (for React frontend)
