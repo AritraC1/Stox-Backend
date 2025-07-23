@@ -10,6 +10,8 @@ app = FastAPI(
     title="Stock Market Dashboard API",
     version="1.0.0",
     docs_url="/docs",            # default Swagger UI
+    redoc_url="/redoc",          # default ReDoc
+    openapi_url="/openapi.json"  # OpenAPI spec
 )
 
 # CORS Middleware (for React frontend)
