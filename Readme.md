@@ -25,16 +25,16 @@
 ## End Points
 
 ```http
-# Stock Data (via yFinance)
+<!-- Stock Data (via yFinance) -->
 GET    /api/stocks/{symbol}              # Get real-time stock price data
 POST   /api/stocks/bulk                  # Fetch real-time data for multiple symbols
 GET    /api/stocks/{symbol}/history      # Get historical stock data (assumed from initial docs)
 
-# Technical Analysis
+<!-- Technical Analysis -->
 GET    /api/stocks/{symbol}/indicators   # Get technical indicators (SMA, EMA, RSI, etc.)
 GET    /api/stocks/{symbol}/chart-data   # Get chart data for plotting (from indicators)
 
-# Company Info
+<!-- Company Info -->
 GET    /api/stocks/{symbol}/info         # Get company metadata and profile
 GET    /api/tickers?page=1&limit=10      # Paginated company/ticker listing
 ```
