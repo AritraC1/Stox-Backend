@@ -45,3 +45,6 @@ alembic/
 htmlcov/
 dist/
 build/
+
+# Dump Files
+dump.rdb
