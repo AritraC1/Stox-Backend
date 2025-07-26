@@ -19,7 +19,7 @@ def get_db():
     finally:
         db.close()
 
-# YFinance
+# YFinance - Historical Data & recent stock prices
 @router.get("/stocks/{symbol}", response_model=list[StockPriceSchema])
 def fetch_stock(symbol: str, db: Session = Depends(get_db)):
     return get_stock_data(symbol, db)
@@ -44,7 +44,7 @@ def get_chart_data(symbol: str, db: Session = Depends(get_db)):
         return JSONResponse(status_code=500, content={"error": str(e)})
 
 # Paginated stock ticker/company info list
-@router.get("/tickers", response_model=list[CompanyInfoSchema])
+@router.get("/stocks", response_model=list[CompanyInfoSchema])
 def list_stocks(page: int = 1, limit: int = 10, db: Session = Depends(get_db)):
     offset = (page - 1) * limit
     companies = db.query(CompanyInfoModel).offset(offset).limit(limit).all()
