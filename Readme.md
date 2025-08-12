@@ -58,7 +58,7 @@ git clone https://github.com/AritraC1/Stox-Backend.git
 cd stox
 
 # Create and activate virtual environment
-python -m venv venv
+python3 -m venv venv
 source venv/bin/activate  # On Windows: venv\Scripts\activate
 
 # Install dependencies
