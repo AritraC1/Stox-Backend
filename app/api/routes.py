@@ -109,3 +109,5 @@ def compare_stocks(stock1: str = Query(...), stock2: str = Query(...)):
 
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
+
+# Get All tickers
