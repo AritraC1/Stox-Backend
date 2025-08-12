@@ -1,5 +1,7 @@
-from typing import List
-from fastapi import APIRouter, Depends
+import yfinance as yf
+from typing import List, Dict
+import re
+from fastapi import APIRouter, Depends, Query, HTTPException
 from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
 from app.db.database import SessionLocal
@@ -34,15 +36,6 @@ def fetch_indicators(symbol: str, db: Session = Depends(get_db)):
 def fetch_company_info(symbol: str):
     return get_company_info(symbol)
 
-# charts
-@router.get("/stocks/{symbol}/chart-data")
-def get_chart_data(symbol: str, db: Session = Depends(get_db)):
-    try:
-        data = get_technical_indicators(symbol, db)
-        return JSONResponse(content=data)
-    except Exception as e:
-        return JSONResponse(status_code=500, content={"error": str(e)})
-
 # Paginated stock ticker/company info list
 @router.get("/stocks", response_model=list[CompanyInfoSchema])
 def list_stocks(page: int = 1, limit: int = 10, db: Session = Depends(get_db)):
@@ -55,14 +48,64 @@ def list_stocks(page: int = 1, limit: int = 10, db: Session = Depends(get_db)):
 
     return companies
 
-# Route for Bulk Historical Data Fetching
-@router.post("/stocks/bulk", response_model=dict)
-def fetch_bulk_stock_data(symbols: List[str], db: Session = Depends(get_db)):
-    results = {}
-    for symbol in symbols:
-        try:
-            data = get_stock_data(symbol, db)
-            results[symbol] = data
-        except Exception as e:
-            results[symbol] = {"error": str(e)}
-    return results
+# Get historical price data
+def get_price_history(symbol: str):
+    ticker = yf.Ticker(symbol)
+    hist = ticker.history(period="6mo", interval="1mo")
+    history = [
+        {"month": str(idx.strftime("%b %Y")), "price": row["Close"]}
+        for idx, row in hist.iterrows()
+    ]
+
+    return history
+
+# Get Logo URL
+def get_logo_url(website: str) -> str:
+    if website:
+        # Extract domain from URL
+        domain_match = re.search(r"https?://(www\.)?([^/]+)", website)
+        if domain_match:
+            domain = domain_match.group(2)
+            return f"https://logo.clearbit.com/{domain}"
+    return ""
+
+# get stock data
+def fetch_stock_data(symbol: str) -> Dict:
+    ticker = yf.Ticker(symbol)
+    info = ticker.info
+
+    if "shortName" not in info:
+        raise ValueError(f"No data found for symbol: {symbol}")
+
+    return {
+        "symbol": symbol.upper(),
+        "companyName": info.get("shortName", ""),
+        "logo": get_logo_url(info.get("website", "")),
+        "revenue": info.get("totalRevenue", None),
+        "marketCap": info.get("marketCap", None),
+    }
+
+
+@router.get("/compare")
+def compare_stocks(stock1: str = Query(...), stock2: str = Query(...)):
+    try:
+        data1 = fetch_stock_data(stock1)
+        data2 = fetch_stock_data(stock2)
+
+        # Calculate price change percentage
+        for stock in [data1, data2]:
+            prev = stock.get("previousClose", 0)
+            curr = stock.get("price", 0)
+            if prev:
+                stock["change"] = round(((curr - prev) / prev) * 100, 2)
+            else:
+                stock["change"] = 0.0
+            stock["history"] = get_price_history(stock["symbol"])
+
+        return {
+            "overview": [data1, data2],
+            "priceData": [data1, data2],
+        }
+
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
