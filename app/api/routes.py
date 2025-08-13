@@ -21,7 +21,6 @@ def get_db():
     finally:
         db.close()
 
-# YFinance - Historical Data & recent stock prices
 @router.get("/stocks/{symbol}", response_model=list[StockPriceSchema])
 def fetch_stock(symbol: str, db: Session = Depends(get_db)):
     return get_stock_data(symbol, db)
