@@ -1,6 +1,7 @@
 import yfinance as yf
 from typing import List, Dict
 import re
+from datetime import datetime, timedelta
 from fastapi import APIRouter, Depends, Query, HTTPException
 from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
@@ -21,9 +22,82 @@ def get_db():
     finally:
         db.close()
 
-@router.get("/stocks/{symbol}", response_model=list[StockPriceSchema])
-def fetch_stock(symbol: str, db: Session = Depends(get_db)):
-    return get_stock_data(symbol, db)
+@router.get("/stocks/{symbol}")
+async def get_stock(symbol: str):
+    try:
+        ticker = yf.Ticker(symbol)
+        info = ticker.info
+        pre_market = info.get("preMarketPrice") or info.get("regularMarketOpen")
+        current_price = info.get("currentPrice")
+        previous_close = info.get("previousClose")
+        change = current_price - previous_close if current_price and previous_close else None
+        change_percent = (change / previous_close * 100) if change and previous_close else None
+
+        # Chart data for 1 day
+        hist = ticker.history(period="1d", interval="5m")
+        chart_data = [
+            {"time": ts.strftime("%H:%M"), "price": float(row["Close"])}
+            for ts, row in hist.iterrows()
+        ]
+
+        return {
+            "symbol": symbol.upper(),
+            "name": info.get("longName"),
+            "market": info.get("market"),
+            "preMarket": pre_market,
+            "marketCap": info.get("marketCap"),
+            "volume": info.get("volume"),
+            "price": current_price,
+            "change": change,
+            "changePercent": change_percent,
+            "chartData": chart_data
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.get("/trending")
+async def get_trending():
+    tickers = ["TSLA", "META", "AMZN", "KO", "MSFT", "NVDA"]
+    data = []
+    for t in tickers:
+        ticker = yf.Ticker(t)
+        info = ticker.info
+        current_price = info.get("currentPrice")
+        previous_close = info.get("previousClose")
+        change = current_price - previous_close if current_price and previous_close else None
+        change_percent = (change / previous_close * 100) if change and previous_close else None
+
+        data.append({
+            "symbol": t,
+            "name": info.get("shortName"),
+            "price": current_price,
+            "changePercent": change_percent
+        })
+    return data
+
+# Get history
+@router.get("/stocks/{symbol}/history")
+def get_stock_history(symbol: str, period: str = "1mo", interval: str = "1d"):
+    try:
+        ticker = yf.Ticker(symbol)
+        hist = ticker.history(period=period, interval=interval)
+
+        # Convert to list of dicts for JSON
+        data = [
+            {
+                "date": date.strftime("%Y-%m-%d"),
+                "open": round(row["Open"], 2),
+                "high": round(row["High"], 2),
+                "low": round(row["Low"], 2),
+                "close": round(row["Close"], 2),
+                "volume": int(row["Volume"])
+            }
+            for date, row in hist.iterrows()
+        ]
+        return {"symbol": symbol, "history": data}
+    except Exception as e:
+        return {"error": str(e)}
 
 # Technical Indicators
 @router.get("/stocks/{symbol}/indicators", response_model=list[TechnicalIndicatorSchema])
